@@ -1,7 +1,10 @@
 *** Settings ***
-Documentation    This test suite tests robot car that works on Raspperry Pi.
+Documentation    This test suite tests robot car that works on Raspberry Pi.
+...              Various tests about sensors, servos, motors, camera and buzzer.
 Metadata    Version        1.0
 Metadata    More Info      For more information about *Robot Framework* see http://robotframework.org
+...                        For more information about *Freenove 4WD Smart* see https://github.com/Freenove/Freenove_4WD_Car_Kit
+...                        For more information about *Raspberry* see https://www.raspberrypi.org/
 Library       SSHLibrary
 Library       BuiltIn
 Suite Setup    Suite Set
@@ -12,8 +15,8 @@ ${ADDRESS}     192.168.1.219
 ${PORT}        8270
 ${USER}        raspi
 ${PASSWORD}    malmlunD1@
-${PATH}        /home/raspi/Robotcar_test/
-${COMMAND}     python /home/raspi/Robotcar_test/RobotCarLibrary.py
+${PATH}        /home/raspi/RemoteSrc/
+${COMMAND}     python /home/raspi/RemoteSrc/RobotCarLibrary.py
 ${picNameBase}     Pic
 ${expectedDistanceToObstacle}    15
 ${roundingDistanceToObstacle}    3
@@ -23,10 +26,9 @@ ${roundingDistanceToObstacle}    3
 
 *** Keywords ***
 Suite Set
-    SSHLibrary.Open Connection    ${ADDRESS}    alias=None    port=22    timeout=2    newline=None    prompt=None    term_type=None    width=None    height=None    path_separator=None    encoding=None    escape_ansi=None
-    ##SSHLibrary.Open Connection    ${ADDRESS}    RemoteServer    22
+    SSHLibrary.Open Connection    ${ADDRESS}    alias=None    port=22    timeout=2
     SSHLibrary.Login    ${USER}    ${PASSWORD}    allow_agent=False    look_for_keys=False    delay=1 seconds
-    SSHLibrary.Write    sudo python /home/raspi/Robotcar_test/RobotCarLibrary.py  
+    SSHLibrary.Write    sudo python /home/raspi/RemoteSrc/RobotCarLibrary.py  
     Sleep    2    reason=None
     Import Library    Remote    http://${ADDRESS}:${PORT}
 
@@ -85,12 +87,12 @@ InfraredSensor
 Camera
     [Documentation]    Tests that camera takes picture. Saves picture for manual inspection.
     [Tags]    testcase6    WIP
-    ${stdout}    ${stderr}    ${rc}=    SSHLibrary.Execute Command    sudo python /home/raspi/Robotcar_test/camera.py    return_stdout=True    return_stderr=True    return_rc=True    sudo=False    sudo_password=None    timeout=15    invoke_subsystem=False    forward_agent=False
+    ${stdout}    ${stderr}    ${rc}=    SSHLibrary.Execute Command    sudo python /home/raspi/RemoteSrc/camera.py    return_stdout=True    return_stderr=True    return_rc=True    sudo=False    sudo_password=None    timeout=15    invoke_subsystem=False    forward_agent=False
     
     Log    ${stdout}    level=INFO    html=False    console=False    formatter=repr
     Log    ${rc}    level=INFO    html=False    console=False    formatter=repr
     Should Be Empty    ${stderr}    msg=${stderr}
-    SSHLibrary.Get File    /home/raspi/Robotcar_test/test.jpg    destination=.    scp=OFF
+    SSHLibrary.Get File    /home/raspi/RemoteSrc/test.jpg    destination=.    scp=OFF
 
 Buzzer
     [Documentation]    Tests that buzzers rings for given time.
@@ -113,17 +115,18 @@ UltraSonicSensor
     Log    Distance to the obstacle was ${distanceToObstacle} cm
     Should Be True    ${status}    msg=Distance to the obstacle was ${distanceToObstacle}cm, which is not in range that was expected (${expectedDistanceToObstacle}+-${roundingDistanceToObstacle}).
 
-InfraredSensorMultipleLines
+InfraredSensorCutLine
     [Documentation]    Tests that infrared sensor detects black line under robot.
-    ...                For this test to work there has to be black line directly under robotcar.
+    ...                For this test to work there has to be cut black line directly under robotcar.
     [Tags]    testcase9    complete
     ${timeoutIndex}=    Set Variable    30
     ${sleepTime}=    Set Variable    0.05
     ${expectedNumberOfLines}=    Set Variable    5
     ${linesFound}=   Set Variable  0
     ${wasLineDirectlyUnderCar}=    Set Variable    False
-    ${carSpeed}=    Set Variable    -500
-
+    ${carSpeed}=    Set Variable    -600
+    
+    #Start moving robot car
     Set Motors    ${carSpeed}    ${carSpeed}    ${carSpeed}    ${carSpeed}
 
     FOR    ${index}    IN RANGE    ${timeoutIndex}
@@ -134,9 +137,8 @@ InfraredSensorMultipleLines
             ${wasLineDirectlyUnderCar}=    Set Variable    ${isLineDirectlyUnderCar}
             IF    ${wasLineDirectlyUnderCar}
                 ${linesFound}=    Evaluate    ${linesFound}+1
-                # IF    ${index} > 0
-                #     Set Motors    0    0    0    0
-                # END     
+                # ${distanceToObstacle}=    Get Distance With Ultrasonic Sensor
+                # Log    Black line number ${linesFound} was found at ${distanceToObstacle}cm from the wall.     
             END
         END 
 
@@ -144,15 +146,16 @@ InfraredSensorMultipleLines
         Sleep    ${sleepTime}
     END
 
+    # Stop robot car
     Set Motors    0    0    0    0
 
     Should Be Equal As Integers    ${expectedNumberOfLines}    ${linesFound}    msg=There should have been ${expectedNumberOfLines} lines found, but ${linesFound} was found!  
     Log    ${linesFound} black lines passed the bottom of robot car.
 
-InfraredSensorMultipleLines2
-    [Documentation]    Tests that infrared sensor detects black line under robot.
-    ...                For this test to work there has to be black line directly under robotcar.
-    [Tags]    testcase10    complete
+InfraredSensorsAll
+    [Documentation]    Tests that all three infrared sensors work on every possible combination.
+    ...                For this test to work there has to be structured black lines moving under robotcar.
+    [Tags]    testcase10    WIP    optional
     ${timeoutIndex}=    Set Variable    30
     ${sleepTime}=    Set Variable    0.05
     ${expectedNumberOfLines}=    Set Variable    5
