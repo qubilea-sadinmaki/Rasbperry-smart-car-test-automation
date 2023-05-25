@@ -119,12 +119,12 @@ InfraredSensorCutLine
     [Documentation]    Tests that infrared sensor detects black line under robot.
     ...                For this test to work there has to be cut black line directly under robotcar.
     [Tags]    testcase9    complete
-    ${timeoutIndex}=    Set Variable    30
+    ${timeoutIndex}=    Set Variable    40
     ${sleepTime}=    Set Variable    0.05
     ${expectedNumberOfLines}=    Set Variable    5
     ${linesFound}=   Set Variable  0
     ${wasLineDirectlyUnderCar}=    Set Variable    False
-    ${carSpeed}=    Set Variable    -600
+    ${carSpeed}=    Set Variable    -550
     
     #Start moving robot car
     Set Motors    ${carSpeed}    ${carSpeed}    ${carSpeed}    ${carSpeed}
@@ -136,9 +136,7 @@ InfraredSensorCutLine
         IF    ${isLineDirectlyUnderCar} != ${wasLineDirectlyUnderCar}
             ${wasLineDirectlyUnderCar}=    Set Variable    ${isLineDirectlyUnderCar}
             IF    ${wasLineDirectlyUnderCar}
-                ${linesFound}=    Evaluate    ${linesFound}+1
-                # ${distanceToObstacle}=    Get Distance With Ultrasonic Sensor
-                # Log    Black line number ${linesFound} was found at ${distanceToObstacle}cm from the wall.     
+                ${linesFound}=    Evaluate    ${linesFound}+1    
             END
         END 
 
