@@ -17,6 +17,7 @@ ${USER}        raspi
 ${PASSWORD}    malmlunD1@
 ${PATH}        /home/raspi/RemoteSrc/
 ${COMMAND}     python /home/raspi/RemoteSrc/RobotCarLibrary.py
+${SCREEN_SHOTS_PATH}    /screenShots
 ${picNameBase}     Pic
 ${expectedDistanceToObstacle}    15
 ${roundingDistanceToObstacle}    3
@@ -38,7 +39,7 @@ Suite Tear
 
 Take Screenshot From Remote
     ${scrShotName}=    Remote Screenshot
-    SSHLibrary.Get File    ${PATH}${scrShotName}    destination=/screenShots
+    SSHLibrary.Get File    ${PATH}${scrShotName}    destination=${SCREEN_SHOTS_PATH}
 
 *** Test Cases ***
 SmokeTest
@@ -87,12 +88,13 @@ InfraredSensor
 Camera
     [Documentation]    Tests that camera takes picture. Saves picture for manual inspection.
     [Tags]    testcase6    WIP
-    ${stdout}    ${stderr}    ${rc}=    SSHLibrary.Execute Command    sudo python /home/raspi/RemoteSrc/camera.py    return_stdout=True    return_stderr=True    return_rc=True    sudo=False    sudo_password=None    timeout=15    invoke_subsystem=False    forward_agent=False
+    # ${stdout}    ${stderr}    ${rc}=    SSHLibrary.Execute Command    sudo python /home/raspi/RemoteSrc/camera.py    return_stdout=True    return_stderr=True    return_rc=True    sudo=False    sudo_password=None    timeout=15    invoke_subsystem=False    forward_agent=False
     
-    Log    ${stdout}    level=INFO    html=False    console=False    formatter=repr
-    Log    ${rc}    level=INFO    html=False    console=False    formatter=repr
-    Should Be Empty    ${stderr}    msg=${stderr}
-    SSHLibrary.Get File    /home/raspi/RemoteSrc/test.jpg    destination=.    scp=OFF
+    # Log    ${stdout}    level=INFO    html=False    console=False    formatter=repr
+    # Log    ${rc}    level=INFO    html=False    console=False    formatter=repr
+    # Should Be Empty    ${stderr}    msg=${stderr}
+    ${picName}=    Take Picture
+    SSHLibrary.Get File    /home/raspi/RemoteSrc/${picName}    destination=.    scp=OFF
 
 Buzzer
     [Documentation]    Tests that buzzers rings for given time.

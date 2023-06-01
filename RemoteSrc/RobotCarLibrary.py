@@ -41,14 +41,24 @@ class RobotCarLibrary(object):
     Purple = [255,0,255]
     Black = [0,0,0]
     AllColors = [White,Red,Green,Blue,Yellow,Cyan,Purple,Black]
-
+    picam2 = None
         
+ 
+    def take_picture(self):
+        """Takes picture. Names the picture with date & time
+        Returns the file name."""
+        print("Taking picture")
+        if(self.picam2 == None):
+           self.picam2 = Picamera2()
+        dt = datetime.datetime.now()
+        picName = f"{dt}.jpg"
+        self.picam2.start_and_capture_file(picName)
+        return picName
         
     def remote_screenshot(self,name=""):
         """Takes screenshot of remote machine. Saves it with date/time as it's name."""
         if name == "":
                 dt = datetime.datetime.now()
-                ts = dt.timestamp()
                 scrShotName = f'/ScreenShots/{dt}.png'
         else:
                 scrShotName = f'/ScreenShots/{name}.png'
@@ -203,12 +213,6 @@ class RobotCarLibrary(object):
                 return "RIGHT"
         if(GPIO.input(infrared.IR01)==False and GPIO.input(infrared.IR02)==True and GPIO.input(infrared.IR03)==True):
                 return "RIGHTCENTER"
-                
-    def take_picture(self):
-        """Takes picture."""
-        print("Taking picture")
-        picam2 = Picamera2()
-        picam2.start_and_capture_file("test.jpg")
         
     def set_led_color(self,i,R,G,B):
         """Sets given led the given RGB color."""
